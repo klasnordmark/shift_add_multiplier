@@ -1,0 +1,12 @@
+[options]
+mode prove
+
+[engines]
+smtbmc
+
+[script]
+read -formal audio_oscillator.v
+prep -top audio_oscillator
+
+[files]
+{{files}}
