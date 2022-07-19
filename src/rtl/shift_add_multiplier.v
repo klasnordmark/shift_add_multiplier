@@ -1,7 +1,7 @@
 `default_nettype none `timescale 1ns / 1ns
 
 module shift_add_multiplier #(
-    parameter WIDTH = 16
+    parameter integer WIDTH = 16
 ) (
     input wire clk,
     input wire reset_n,
@@ -72,12 +72,15 @@ module shift_add_multiplier #(
           end else begin
             product <= ({product[2*WIDTH:WIDTH] + factor_a, product[WIDTH-1:0]}) >>> 1;
           end
+        end else begin
+          product <= product >>> 1;
         end
 
         if (counter == WIDTH) begin
           state <= StateOutput;
           tvalid_master <= 1;
-          tdata_master <= counter <= 0;
+          tdata_master <= product[WIDTH-1:0];
+          counter <= 0;
         end else begin
           counter <= counter + 1;
         end
@@ -87,7 +90,6 @@ module shift_add_multiplier #(
         if (output_transaction) begin
           state <= StateInput;
           tvalid_master <= 0;
-          tdata_master <= product[2*WIDTH-2:WIDTH-1];
           received_1 <= 0;
           received_2 <= 0;
         end
@@ -111,6 +113,14 @@ module shift_add_multiplier #(
 
 `ifdef FORMAL
   `include "formal.v"
+`endif
+
+`ifdef COCOTB_SIM
+  initial begin
+    $dumpfile ("shift_add_multiplier.vcd");
+    $dumpvars (0, shift_add_multiplier);
+    #1;
+  end
 `endif
 
 endmodule
